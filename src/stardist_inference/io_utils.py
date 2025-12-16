@@ -145,7 +145,7 @@ def write_image(labels, out_image_file, output_format, gen_roi):
         img = move_image_axes(img, "ZYX", 'TZCYX', True)
         # save_tiff_imagej_compatible(segmentation_file_name, labels.astype('uint16'), axes='ZYX')
         tif.imwrite(segmentation_file_name, img, imagej=True,
-                    compress="zlib",
+                    compression="zlib",
                     metadata={'axes': 'TZCYX'})
     if gen_roi:
         gen_roi_narray(labels, segmentation_file_name)
@@ -155,5 +155,6 @@ def get_filename_components(image_file_str):
     file_prefix = os.path.splitext(cur_name)[0]
     file_ext = os.path.splitext(cur_name)[1]
     file_base = os.path.basename(cur_name).split(os.extsep)
-    time_index = int(file_base[0].split('_')[-1])
+    #time_index = int(file_base[0].split('_')[-1])
+    time_index = int(file_prefix.split('_')[-1])
     return file_base, file_prefix, file_ext, time_index
