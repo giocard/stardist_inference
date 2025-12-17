@@ -11,10 +11,9 @@ long_description = read('README.md')
 
 install_requires = [
     "click",
-    "tensorflow==2.11.0",
+    "tensorflow==2.10.1",
     "stardist==0.8.1",
-#    "roi_convertor @ git+https://github.com/abiswas-odu/roi_convertor.git"
-    "roi_convertor"
+    "roi_convertor @ git+https://github.com/giocard/roi_convertor.git"
 ]
 
 def read_version():
