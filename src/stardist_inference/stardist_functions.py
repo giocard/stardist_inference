@@ -30,7 +30,7 @@ def initialize_model(model_dir, prob_threshold, nms_threshold):
     print("User modified thresholds:", model._thresholds)
     return model
 
-def run_3D_stardist(model, Xi, axis_norm, split_predict, prob_threshold_post, nms_threshold_post):
+def run_3D_stardist(model, Xi, axis_norm, split_predict, prob_threshold_post, nms_threshold_post, scale_factors=(1,1,1)):
     """Run inference with the stardist 3d model
     Args:
         model: stardist model.
@@ -53,9 +53,10 @@ def run_3D_stardist(model, Xi, axis_norm, split_predict, prob_threshold_post, nm
                                                            points=None,
                                                            prob_class=None,
                                                            prob_thresh=prob_threshold_post,
-                                                           nms_thresh=nms_threshold_post)
+                                                           nms_thresh=nms_threshold_post,
+                                                           scale=scale_factors)
 
     else:
-        labels, details = model.predict_instances(normalize(Xi, 1, 99.8, axis=axis_norm))
+        labels, details = model.predict_instances(normalize(Xi, 1, 99.8, axis=axis_norm), scale=scale_factors)
 
     return labels, details

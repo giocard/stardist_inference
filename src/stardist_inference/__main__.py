@@ -18,6 +18,12 @@ from .io_utils import get_filename_components
          "The path can be a directory with the files in subdirectories.",
 )
 @click.option(
+    "--pixel_size_xyz", "-px", required=False, default="0.2,0.2,2", #type=click.FLOAT,
+    help="Pixel size, in micrometers, along the three axes X, Y and Z. "
+         "Used to rescale the data to the optimal size. "
+         " Default: 0.2,0.2,2 (i.e., 0.2um in X and Y, 2um in Z).",
+)
+@click.option(
     "--output_dir","-o",
     type=click.Path(exists=True, dir_okay=True, readable=True),
     default=False,
@@ -70,6 +76,7 @@ from .io_utils import get_filename_components
 @click.version_option(version=__version__)
 def main(
         image_path: str,
+        pixel_size_xyz: str,
         output_dir: str,
         early_model_dir: str,
         early_prob_thresh: float,
@@ -83,6 +90,12 @@ def main(
         no_8bit_shift: bool
 ) -> None:
     """Main entry point for stardist_inference."""
+
+    # set the scale factors based on pixel size
+    px, py, pz = [float(x) for x in pixel_size_xyz.split(',')]
+    # scale images because models were trained with 0.2x0.2x2um data
+    scale_factors = (pz/2.0, px/0.2, py/0.2)  # z,y,x
+    print("Scale factors (z,y,x): ", scale_factors)
 
     # Load model
     early_model = stardist_functions.initialize_model(early_model_dir, early_prob_thresh, early_nms_thresh)
@@ -105,12 +118,14 @@ def main(
                 print("Segmenting with early stage model.")
                 label, detail = stardist_functions.run_3D_stardist(early_model,
                                                                    Xi, axis_norm, False,
-                                                                   early_prob_thresh, early_nms_thresh)
+                                                                   early_prob_thresh, early_nms_thresh,
+                                                                   scale_factors)
             else:
                 print("Segmenting with late stage model.")
                 label, detail = stardist_functions.run_3D_stardist(late_model, Xi,
                                                                    axis_norm, False,
-                                                                   late_prob_thresh, late_nms_thresh)
+                                                                   late_prob_thresh, late_nms_thresh,
+                                                                   scale_factors)
 
             out_image_name = os.path.splitext(os.path.basename(image_file))[0] + ".label"
             out_image_path = os.path.join(output_dir,out_image_name)
@@ -120,8 +135,11 @@ def main(
         Xi = io_utils.read_image(image_path, not no_8bit_shift)
         axis_norm = (0, 1, 2)  # normalize channels independently
         label, detail = stardist_functions.run_3D_stardist(early_model, Xi, axis_norm, False,
-                                                           early_prob_thresh, early_nms_thresh)
+                                                           early_prob_thresh, early_nms_thresh,
+                                                           scale_factors)
 
         out_image_name = os.path.splitext(os.path.basename(image_path))[0] + ".label"
         out_image_path = os.path.join(output_dir,out_image_name)
         io_utils.write_image(label, out_image_path, output_format, gen_roi)
+
+    print("Run successfully completed.")
