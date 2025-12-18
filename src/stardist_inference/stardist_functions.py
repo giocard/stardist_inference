@@ -30,7 +30,7 @@ def initialize_model(model_dir, prob_threshold, nms_threshold):
     print("User modified thresholds:", model._thresholds)
     return model
 
-def run_3D_stardist(model, Xi, axis_norm, split_predict, prob_threshold_post, nms_threshold_post, scale_factors=(1,1,1)):
+def run_3D_stardist(model, Xi, axis_norm, split_predict, prob_threshold_post, nms_threshold_post, scale_factors=(1,1,1), tiles_number=None):
     """Run inference with the stardist 3d model
     Args:
         model: stardist model.
@@ -39,12 +39,14 @@ def run_3D_stardist(model, Xi, axis_norm, split_predict, prob_threshold_post, nm
         split_predict: split prediction and post-processing to apply different thresholds.
         prob_threshold_post: post-processing probability threshold.
         nms_threshold_post: post-processing nms threshold.
+        scale_factors: scaling factors for each axis.
+        tiles_number: number of tiles to split the image into for prediction along each axis.
     Returns:
         labels: segmentation label.
         details: segmentation details.
     """
     if split_predict:
-        prob_mat, dist_mat = model.predict(normalize(Xi, 1, 99.8, axis=axis_norm))
+        prob_mat, dist_mat = model.predict(normalize(Xi, 1, 99.8, axis=axis_norm), n_tiles=tiles_number)
 
         # This is the post processing involving nms suppression
         labels, details = model._instances_from_prediction(img_shape=Xi.shape,
@@ -57,6 +59,6 @@ def run_3D_stardist(model, Xi, axis_norm, split_predict, prob_threshold_post, nm
                                                            scale=scale_factors)
 
     else:
-        labels, details = model.predict_instances(normalize(Xi, 1, 99.8, axis=axis_norm), scale=scale_factors)
+        labels, details = model.predict_instances(normalize(Xi, 1, 99.8, axis=axis_norm), scale=scale_factors, n_tiles=tiles_number)
 
     return labels, details

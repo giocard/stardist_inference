@@ -73,6 +73,11 @@ from .io_utils import get_filename_components
     "--no_8bit_shift","-no8sft", is_flag=True,
     help="Do not perform 8 bit shift when reading image.",
 )
+@click.option(
+    "--tiles", "-t", required=False, default="1,1,1",
+    help="Number of tiles to split the image into for prediction along each axis (order=x,y,z).",
+)
+
 @click.version_option(version=__version__)
 def main(
         image_path: str,
@@ -87,7 +92,8 @@ def main(
         timepoint_switch: int,
         output_format: str,
         gen_roi: bool,
-        no_8bit_shift: bool
+        no_8bit_shift: bool,
+        tiles: str,
 ) -> None:
     """Main entry point for stardist_inference."""
 
@@ -97,6 +103,14 @@ def main(
     scale_factors = (pz/2.0, px/0.2, py/0.2)  # z,y,x
     print("Scale factors (z,y,x): ", scale_factors)
 
+    # set the number of tiles for prediction
+    if tiles is not None:
+        nx, ny, nz = [int(x) for x in tiles.split(',')]
+        tiles_number = (nz, ny, nx)  # z,y,x
+        #print("Number of tiles (z,y,x): ", tiles_number)
+    else:
+        tiles_number = None
+    
     # Load model
     early_model = stardist_functions.initialize_model(early_model_dir, early_prob_thresh, early_nms_thresh)
 
@@ -119,13 +133,13 @@ def main(
                 label, detail = stardist_functions.run_3D_stardist(early_model,
                                                                    Xi, axis_norm, False,
                                                                    early_prob_thresh, early_nms_thresh,
-                                                                   scale_factors)
+                                                                   scale_factors, tiles_number)
             else:
                 print("Segmenting with late stage model.")
                 label, detail = stardist_functions.run_3D_stardist(late_model, Xi,
                                                                    axis_norm, False,
                                                                    late_prob_thresh, late_nms_thresh,
-                                                                   scale_factors)
+                                                                   scale_factors, tiles_number)
 
             out_image_name = os.path.splitext(os.path.basename(image_file))[0] + ".label"
             out_image_path = os.path.join(output_dir,out_image_name)
@@ -136,7 +150,7 @@ def main(
         axis_norm = (0, 1, 2)  # normalize channels independently
         label, detail = stardist_functions.run_3D_stardist(early_model, Xi, axis_norm, False,
                                                            early_prob_thresh, early_nms_thresh,
-                                                           scale_factors)
+                                                           scale_factors, tiles_number)
 
         out_image_name = os.path.splitext(os.path.basename(image_path))[0] + ".label"
         out_image_path = os.path.join(output_dir,out_image_name)
