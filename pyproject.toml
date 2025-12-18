@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stardist_inference"
+dynamic = ["version"]
+description = "Perform stardist 3d inference."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "GNU General Public License v3"}
+authors = [
+    {name = "Posfai lab development team.", email = "ab50@princeton.edu"}
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+    "click",
+    "tensorflow==2.10.1",
+    "stardist==0.8.1",
+    "roi_convertor @ git+https://github.com/giocard/roi_convertor.git"
+]
+
+[project.urls]
+Homepage = "https://github.com/abiswas-odu/stardist_inference.git"
+
+[project.scripts]
+stardist_inference = "stardist_inference.__main__:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "stardist_inference.__main__.__version__"}
