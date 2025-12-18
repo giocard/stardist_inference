@@ -1,0 +1,18 @@
+# environment.yml
+name: stardist_inference_gpu
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.9
+  - cudatoolkit=11.2
+  - cudnn=8.1.0
+  - git
+  - pip
+  - setuptools
+  - wheel
+  - pip:
+    - click
+    - tensorflow==2.10.1
+    - stardist==0.8.1
+    - git+https://github.com/giocard/stardist_inference.git
